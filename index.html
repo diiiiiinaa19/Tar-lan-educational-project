@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tar-Lan</title>
+  <link href="style.css" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- ===== Навигация ===== -->
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <div class="brand">Tar-<span>Lan</span></div>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav-links" id="navLinks">
+        <a href="#home" data-key="home">Главная</a>
+        <a href="#about" data-key="about">О проекте</a>
+
+        <!-- языки -->
+        <div class="lang" aria-label="Выбор языка">
+          <button class="active" data-lang="ru">RU</button>
+          <button data-lang="kk">KZ</button>
+          <button data-lang="en">EN</button>
+        </div>
+
+        <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle color theme" aria-pressed="true">
+          <span class="theme-toggle__icon" aria-hidden="true">🌙</span>
+          <span class="theme-toggle__text">Dark mode</span>
+        </button>
+
+        <!-- логин / профиль (auth-co.js добавит ссылку Profile при наличии authUser) -->
+        <div class="login" title="Войти" aria-label="Войти">🔒</div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ===== HERO — ЗАСТАВКА ===== -->
+  <header class="hero" id="home">
+    <div class="hero-bg"></div>
+
+    <div class="hero-content">
+      <div class="kicker" data-key="heroKicker">Социально-образовательный проект</div>
+      <h1 class="title">Tar-Lan</h1>
+      <p class="subtitle" data-key="heroSubtitle">
+        Диагностические тесты по математике, английскому языку и информатике.<br>
+        Пройдите короткие задания и получите мгновенный фидбэк с подсказками.
+      </p>
+      <div class="cta-row">
+        <button class="btn btn-primary" id="start-tests" data-key="heroBtn">Пройти тест</button>
+        <a href="#about" class="btn btn-ghost" data-key="heroBtn2">Подробнее</a>
+      </div>
+    </div>
+
+    <a class="scroll-more" href="#tests">Подробнее <i class="chev"></i></a>
+  </header>
+
+  <!-- ===== О ПРОЕКТЕ ===== -->
+  <section class="section" id="about">
+    <div class="container">
+      <h2 data-key="sectionAboutTitle">Почему это важно</h2>
+      <p class="lead" data-key="sectionAboutText">
+        Помогаем ученикам увидеть сильные стороны и пробелы. После каждого теста — понятный отчёт и темы для повторения.
+        Диагностика показывает не просто итоговый балл, а детальную картину знаний: какие темы освоены уверенно,
+        где есть пробелы, и что повторить в первую очередь.
+      </p>
+      
+    </div>
+  </section>
+
+  <!-- ===== ТЕСТЫ ===== -->
+  <section class="section" id="tests">
+    <div class="container">
+      <h2 data-key="testsTitle">Выберите предмет</h2>
+      <p class="lead" data-key="testsText">Тест 10–15 минут. Сразу после — результаты и краткий разбор.</p>
+
+      <div class="cards">
+        <!-- МАТЕМАТИКА (placeholder — файл mathtest.html / mathtest.js будет подключён позже) -->
+        <article class="card" data-subject="math">
+          <span class="chip" data-key="mathTitle">Математика</span>
+          <h3 data-key="mathTitle">Диагностика по математике</h3>
+          <p data-key="mathDesc">Алгебра, геометрия, логика. Адаптивная сложность и фидбэк по темам.</p>
+          <div class="test-types">
+            <button class="test-type active" data-type="mixed" data-key="mixed">Mixed</button>
+            <button class="test-type" data-type="geometry" data-key="geometry">Геометрия</button>
+            <button class="test-type" data-type="algebra" data-key="algebra">Алгебра</button>
+          </div>
+          <div class="actions">
+            <!-- mathtest.html пока-заглушка; позже вы подставите реальные файлы -->
+            <a class="btn btn-primary start-link" href="mathtest.html?sub=math&type=mixed" data-key="start">Начать</a>
+          </div>
+        </article>
+
+        <!-- АНГЛИЙСКИЙ -->
+        <article class="card" data-subject="english">
+          <span class="chip" data-key="engChip">Английский</span>
+          <h3 data-key="engTitle">Диагностика по английскому</h3>
+          <p data-key="engDesc">Грамматика, лексика, чтение. Уровни: Easy / Medium / Hard.</p>
+          <div class="test-types">
+            <!-- У кнопок data-type здесь используются значения easy/medium/hard -->
+            <button class="test-type active" data-type="mixed">Mixed</button>
+            <button class="test-type" data-type="grammar">Grammar</button>
+            <button class="test-type" data-type="vacobulary">Vocabulary</button>
+            <button class="test-type" data-type="reading">Reading</button>
+          </div>
+          <div class="actions">
+            <!-- по умолчанию стартует easy -->
+            <a class="btn btn-primary start-link" href="englishtest.html?level=easy" data-key="start">Начать</a>
+          </div>
+        </article>
+
+        <!-- ИНФОРМАТИКА -->
+        <article class="card" data-subject="informatics">
+          <span class="chip" data-key="infChip">Информатика</span>
+          <h3 data-key="infTitle">Диагностика по информатике</h3>
+          <p data-key="infDesc">Алгоритмы, логика, основы программирования и ИКТ. Краткий тест и мгновенный фидбэк.</p>
+          <div class="test-types">
+            <button class="test-type active" data-type="mixed" data-key="mixed">Mixed</button>
+            <button class="test-type" data-type="theory" data-key="theory">Теория</button>
+            <button class="test-type" data-type="practice" data-key="practice">Практика</button>
+          </div>
+          <div class="actions">
+            <a class="btn btn-primary start-link" href="inftest.html?sub=informatics&type=mixed" data-key="start">Начать</a>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  
+  <footer class="footer">
+  © <span id="y"></span> Tar-Lan. <span data-key="footerText"></span>
+</footer>
+
+  <!-- MathJax: config must load before the library -->
+  <script src="./mathjax-config.js"></script>
+  <!-- MathJax core renders LaTeX inline/block equations site-wide -->
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+
+  <!-- основной скрипт проекта -->
+  <script src="./script.js" defer></script>
+
+  <!-- glue for auth/profile link -->
+  <script src="./auth-co.js" defer></script>
+
+  <!-- динамика кнопок: устанавливает параметры ссылки start-link в зависимости от выбранного типа/уровня -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('y').textContent = new Date().getFullYear();
+
+      // smooth scroll for start-tests button
+      const btn = document.getElementById('start-tests');
+      if(btn) btn.addEventListener('click', () => document.getElementById('tests')?.scrollIntoView({behavior:'smooth'}));
+
+      // For each card: wire test-type buttons to update the start-link href
+      document.querySelectorAll('.card').forEach(card => {
+        const typeBtns = card.querySelectorAll('.test-type');
+        const startLink = card.querySelector('.start-link');
+        if(!startLink) return;
+
+        typeBtns.forEach(b => b.addEventListener('click', () => {
+          typeBtns.forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+
+          const t = b.dataset.type || 'mixed';
+          const subject = card.dataset.subject || '';
+
+          // build new URL based on subject
+          const href = new URL(startLink.href, location.href);
+
+          if(subject === 'english'){
+            href.searchParams.set('type', t);
+          } else {
+            // other subjects use "type"
+            href.searchParams.set('type', t);
+          }
+          startLink.href = href.toString();
+        }));
+      });
+
+    });
+  </script>
+<script src="lang.js"></script>
+</body>
+</html>

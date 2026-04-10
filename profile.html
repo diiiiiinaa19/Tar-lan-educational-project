@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Profile — Tar-Lan</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="style.css" rel="stylesheet" />
+  <style>
+    /* Dark compact layout + larger charts */
+    body { background: #07101a; color:#e6eef6; }
+    .card { background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.03); }
+    .user-card { min-height: 140px; }
+    .small-muted { font-size: .9rem; color: #9aa4b2; }
+    .chart-wrap { padding:12px; }
+    .no-data { color: #7b8794; font-style: italic; padding: 1rem; }
+    .meme-area { display:flex; gap:12px; align-items:center; margin-top:12px; }
+    .meme-img { width:110px; height:80px; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#fff; }
+    .table-wrap { max-height: 360px; overflow:auto; }
+    /* make main progress larger and prominent */
+    #progressLineChart { width:100% !important; height:420px !important; }
+    #subjectPieChart, #topicBarChart { width:100% !important; height:280px !important; }
+    /* reduce vertical margins */
+    .mb-3 { margin-bottom: 0.85rem !important; }
+    .mt-3 { margin-top: 0.85rem !important; }
+    /* responsive tweaks */
+    @media (max-width: 991px){
+      #progressLineChart { height:260px !important; }
+      #subjectPieChart, #topicBarChart { height:200px !important; }
+    }
+  </style>
+</head>
+<body class="d-flex flex-column min-vh-100">
+
+  <!-- NAV -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container">
+      <a class="navbar-brand" href="index.html">Tar-<span style="color:#0ea5a6">Lan</span></a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav me-auto" id="mainNav">
+          <li class="nav-item"><a class="nav-link" href="index.html#home">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.html#about">About</a></li>
+          <li class="nav-item"><a class="nav-link" href="index.html#tests">Tests</a></li>
+          <li class="nav-item"><a class="nav-link active" href="profile.html">Profile</a></li>
+        </ul>
+
+        <div class="d-flex align-items-center gap-2">
+          <div class="small-muted me-2" id="langLabel">Language</div>
+          <div class="btn-group lang-switch" role="group" aria-label="Language">
+            <button type="button" class="btn btn-sm btn-outline-light" data-lang="en">EN</button>
+            <button type="button" class="btn btn-sm btn-outline-light" data-lang="ru">RU</button>
+            <button type="button" class="btn btn-sm btn-outline-light" data-lang="kk">KK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="container py-4 flex-grow-1">
+    <div class="row g-4">
+      <!-- left: user card -->
+      <div class="col-lg-4">
+        <div class="card p-3 user-card shadow-sm">
+          <h5 id="profileName">Guest</h5>
+          <div class="small-muted mb-2" id="profileEmail">Not logged in</div>
+
+          <div id="profileStats" class="mb-2">
+            <div><span id="attLabel">Attempts:</span> <strong id="profileAttempts">0</strong></div>
+            <div><span id="bestLabel">Best score:</span> <strong id="profileBest">—</strong></div>
+            <div><span id="lastLabel">Last attempt:</span> <strong id="profileLast">—</strong></div>
+          </div>
+
+          <!-- MEME / VISUAL FEEDBACK -->
+          <div class="meme-area" aria-live="polite">
+            <div class="meme-img" id="memeImg">
+              <svg width="100%" height="100%" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#0f172a"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="12" fill="#9aa4b2">No data</text></svg>
+            </div>
+            <div>
+              <div class="meme-caption" id="memeCaption">No progress yet</div>
+              <div style="margin-top:8px"><small class="small-muted" id="avgCaption">Subject avg: —</small></div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-3">
+            <button id="exportHistoryBtnProfile" class="btn btn-success btn-sm">Export JSON</button>
+            <button id="clearHistoryBtn" class="btn btn-outline-light btn-sm">Clear history</button>
+          </div>
+
+          <div class="mt-3">
+            <button id="logoutBtnProfile" class="btn btn-danger btn-sm">Logout</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- right: charts and controls -->
+      <div class="col-lg-8">
+        <div class="card p-3 mb-3">
+          <div class="d-flex align-items-center gap-3">
+            <div><strong id="showLabel">Show:</strong></div>
+            <select id="subjectFilter" class="form-select form-select-sm" style="width:auto;">
+              <option value="all">All subjects</option>
+              <option value="informatics">Informatics</option>
+              <option value="english">English</option>
+              <option value="math">Math</option>
+            </select>
+            <div class="ms-auto small-muted">&nbsp;</div>
+          </div>
+        </div>
+
+        <!-- charts -->
+        <div class="row g-3">
+          <div class="col-lg-8">
+            <div class="card chart-wrap">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h5 id="progressTitle">Progress over time</h5>
+              </div>
+              <canvas id="progressLineChart"></canvas>
+              <div id="progressNoData" class="no-data" style="display:none">No attempts yet for selected subject.</div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <div class="card chart-wrap mb-3">
+              <h6 id="subjectAvgTitle">Subject averages</h6>
+              <canvas id="subjectPieChart"></canvas>
+              <div id="subjectNoData" class="no-data" style="display:none">No data to calculate subject averages.</div>
+            </div>
+
+            <div class="card chart-wrap">
+              <h6 id="topicTitle">Average by topic (selected subject)</h6>
+              <canvas id="topicBarChart"></canvas>
+              <div id="topicNoData" class="no-data" style="display:none">No topic breakdown data for selected subject.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- history table directly below charts -->
+        <div class="card p-3 mt-3">
+          <h5 id="historyTitle">Attempts history</h5>
+          <div class="table-wrap mt-2">
+            <table class="table table-sm text-light mb-0">
+              <thead>
+                <tr>
+                  <th>#</th><th>User</th><th>Category</th><th>Score</th><th>%</th><th>When</th>
+                </tr>
+              </thead>
+              <tbody id="historyTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="mt-auto py-3 text-center small-muted">
+    © <span id="year"></span> Tar-Lan
+  </footer>
+
+  <!-- Bootstrap JS bundle (required for hamburger/collapse) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <!-- MathJax shared config + library for LaTeX rendering -->
+  <script src="./mathjax-config.js"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="script.js"></script>
+  <script src="auth-co.js"></script>
+
+  <script>
+    // i18n
+    const UI_I18N = {
+      en:{ language:'Language', show:'Show:', att:'Attempts:', best:'Best score:', last:'Last attempt:', exportBtn:'Export JSON', clearBtn:'Clear history', logout:'Logout', progress:'Progress over time', subjectAvg:'Subject averages', topicAvg:'Average by topic (selected subject)', history:'Attempts history', nodata:'No attempts yet for selected subject.', memeUp:'Nice — your score improved!', memeDown:'Oops — score dropped, keep practicing.', memeSame:'Stable — no big change.', avgCaption:'Subject avg:' },
+      ru:{ language:'Язык', show:'Показать:', att:'Попытки:', best:'Лучший результат:', last:'Последняя попытка:', exportBtn:'Экспорт JSON', clearBtn:'Очистить историю', logout:'Выйти', progress:'Прогресс во времени', subjectAvg:'Среднее по предметам', topicAvg:'Среднее по темам (выбранный предмет)', history:'История попыток', nodata:'Нет попыток для выбранного предмета.', memeUp:'Класс! Результат улучшился!', memeDown:'Упс — результат упал, больше практики.', memeSame:'Стабильно — изменений нет.', avgCaption:'Среднее по предмету:' },
+      kk:{ language:'Тіл', show:'Көрсету:', att:'Ықтималдықтар:', best:'Жақсы нәтиже:', last:'Соңғы талпыныс:', exportBtn:'Экспорт JSON', clearBtn:'Тарихты өшіру', logout:'Шығу', progress:'Уақыт бойынша прогресс', subjectAvg:'Пәндер бойынша орташа', topicAvg:'Тақырыптар бойынша орташа (таңдалған пән)', history:'Талпыныстар тарихы', nodata:'Таңдалған пән бойынша талпыныс жоқ.', memeUp:'Керемет! Нәтиже жақсарды!', memeDown:'Ой — нәтиже төмендеді, көп жаттығу жасаңыз.', memeSame:'Тұрақты — өзгеріс жоқ.', avgCaption:'Пән бойынша орташа:' }
+    };
+
+    function getUILang(){ return localStorage.getItem('edu_lang') || 'en'; }
+    function setUILang(l){ localStorage.setItem('edu_lang', l); applyUILang(); }
+    function applyUILang(){
+      const L = getUILang(), u = UI_I18N[L] || UI_I18N.en;
+      document.getElementById('langLabel').textContent = u.language;
+      document.getElementById('showLabel').textContent = u.show;
+      document.getElementById('attLabel').textContent = u.att;
+      document.getElementById('bestLabel').textContent = u.best;
+      document.getElementById('lastLabel').textContent = u.last;
+      document.getElementById('exportHistoryBtnProfile').textContent = u.exportBtn;
+      document.getElementById('clearHistoryBtn').textContent = u.clearBtn;
+      document.getElementById('logoutBtnProfile').textContent = u.logout;
+      document.getElementById('progressTitle').textContent = u.progress;
+      document.getElementById('subjectAvgTitle').textContent = u.subjectAvg;
+      document.getElementById('topicTitle').textContent = u.topicAvg;
+      document.getElementById('historyTitle').textContent = u.history;
+      document.getElementById('progressNoData').textContent = u.nodata;
+      document.getElementById('subjectNoData').textContent = u.nodata;
+      document.getElementById('topicNoData').textContent = u.nodata;
+      document.querySelectorAll('.lang-switch [data-lang]').forEach(b=> b.classList.toggle('active', b.getAttribute('data-lang')===L));
+    }
+
+    document.addEventListener('DOMContentLoaded', ()=>{
+
+      // wire language buttons
+      document.querySelectorAll('.lang-switch [data-lang]').forEach(b=> b.addEventListener('click', ()=> setUILang(b.getAttribute('data-lang')||'en')));
+      applyUILang();
+
+      // set profile name/email
+      try {
+        const edu = localStorage.getItem('edu_current');
+        if(edu){ const o = JSON.parse(edu); if(o.name) document.getElementById('profileName').textContent = o.name; if(o.email) document.getElementById('profileEmail').textContent = o.email || o.name; }
+        else { const cur = localStorage.getItem('currentUser'); if(cur) document.getElementById('profileName').textContent = cur; }
+      } catch(e){}
+      // initial render
+      renderAll(document.getElementById('subjectFilter').value || 'all');
+      // handlers
+      document.getElementById('subjectFilter').addEventListener('change', ()=> renderAll(document.getElementById('subjectFilter').value));
+      document.getElementById('exportHistoryBtnProfile').addEventListener('click', function(){ const oldData = safeParse('edu_history'), newData = safeParse('quiz_history_v1'); downloadJSON('edu_quiz_history_export.json', { exportedAt:(new Date()).toISOString(), edu_history:oldData, quiz_history_v1:newData }); });
+      document.getElementById('clearHistoryBtn').addEventListener('click', function(){ if(!confirm('Clear all local history (edu_history and quiz_history_v1)? This cannot be undone.')) return; localStorage.removeItem('edu_history'); localStorage.removeItem('quiz_history_v1'); const cu = localStorage.getItem('edu_current') ? JSON.parse(localStorage.getItem('edu_current')).name : (localStorage.getItem('currentUser') || null); if(cu) localStorage.removeItem('history_user_' + cu); renderAll(document.getElementById('subjectFilter').value || 'all'); });
+      document.getElementById('logoutBtnProfile').addEventListener('click', function(e){ e.preventDefault(); localStorage.removeItem('edu_current'); localStorage.removeItem('currentUser'); localStorage.removeItem('authUser'); location.href = 'index.html'; });
+    });
+
+    // helpers and data funcs (only my attempts enforced)
+    function safeParse(key){ try{ return JSON.parse(localStorage.getItem(key) || '[]'); } catch(e){ return []; } }
+    function downloadJSON(filename,data){ const blob=new Blob([JSON.stringify(data,null,2)],[{type:'application/json'}]); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
+    function subjectOfCategory(cat){ if(!cat) return 'other'; const s=String(cat).toLowerCase(); if(s.startsWith('informatics')) return 'informatics'; if(s.startsWith('english')) return 'english'; if(s.startsWith('math')) return 'math'; if(s.includes('informat')) return 'informatics'; if(s.includes('eng')) return 'english'; if(s.includes('math')) return 'math'; return 'other'; }
+
+    function loadUnifiedHistory(){ const dataNew=safeParse('quiz_history_v1'); const dataOld=safeParse('edu_history'); const unified=[]; dataNew.forEach(r=> unified.push({ ts:r.ts||r.timestamp||new Date().toISOString(), user:r.user||(localStorage.getItem('edu_current')?JSON.parse(localStorage.getItem('edu_current')).name:(localStorage.getItem('currentUser')||'Guest')), category:r.category||'undef', percent:(r.percent==null?null:Number(r.percent)), score:r.score||'', topicBreakdown:r.topicBreakdown||{} }) ); dataOld.forEach(r=> unified.push({ ts:r.ts||r.timestamp||new Date().toISOString(), user:r.user||(localStorage.getItem('edu_current')?JSON.parse(localStorage.getItem('edu_current')).name:(localStorage.getItem('currentUser')||'Guest')), category:r.category||r.cat||'undef', percent:(r.percent==null?null:Number(r.percent)), score:r.score||'', topicBreakdown:r.topicBreakdown||{} }) ); unified.sort((a,b)=> new Date(a.ts)-new Date(b.ts)); return unified; }
+
+    function computeSubjectAverages(unified){
+      const agg={};
+      unified.forEach(r=>{ const subj=subjectOfCategory(r.category); if(!agg[subj]) agg[subj]={sum:0,n:0}; const p=(r.percent==null)?null:Number(r.percent); if(p!=null){ agg[subj].sum += p; agg[subj].n++; } });
+      const out={}; Object.keys(agg).forEach(k=> out[k] = agg[k].n ? Math.round(agg[k].sum / agg[k].n) : null); return out;
+    }
+
+    function computeTopicAverages(list){
+      const agg={};
+      list.forEach(r=>{
+        const tb=r.topicBreakdown||{};
+        const subj=subjectOfCategory(r.category);
+        if(tb && Object.keys(tb).length){
+          Object.keys(tb).forEach(topic=>{
+            const rec=agg[topic]||{sum:0,n:0}; const pct=(tb[topic].total && tb[topic].correct) ? Math.round((tb[topic].correct / tb[topic].total) * 100) : 0; rec.sum+=pct; rec.n++; agg[topic]=rec;
+          });
+        } else {
+          if(subj==='math'){
+            const cat=String(r.category||'').toLowerCase();
+            const bucket = cat.includes('geometry') ? 'geometry'
+              : cat.includes('algebra') ? 'algebra'
+              : cat.includes('practice') ? 'algebra'
+              : cat.includes('theory') ? 'geometry'
+              : 'overall';
+            const rec=agg[bucket]||{sum:0,n:0};
+            const p=(r.percent==null)?0:Number(r.percent);
+            rec.sum += p;
+            rec.n++;
+            agg[bucket]=rec;
+          }
+          else if(subj==='english'){ const cat=String(r.category||'').toLowerCase(); const mapping=['reading','writing','listening','speaking']; let found=mapping.find(k=>cat.includes(k)); if(!found) found='overall'; const rec=agg[found]||{sum:0,n:0}; const p=(r.percent==null)?0:Number(r.percent); rec.sum+=p; rec.n++; agg[found]=rec; }
+          else { const rec=agg['overall']||{sum:0,n:0}; const p=(r.percent==null)?0:Number(r.percent); rec.sum+=p; rec.n++; agg['overall']=rec; }
+        }
+      });
+      const labels=Object.keys(agg); const values=labels.map(k => Math.round(agg[k].sum / Math.max(1, agg[k].n))); return { labels, values };
+    }
+
+    // simple SVG memes offline
+    const MEME_SVGS = {
+      up: `data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120"><rect width="100%" height="100%" fill="#ecfdf5"/><text x="50%" y="55%" text-anchor="middle" font-size="18" fill="#065f46">↑ Improved</text></svg>')}`,
+      down: `data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120"><rect width="100%" height="100%" fill="#fff1f2"/><text x="50%" y="55%" text-anchor="middle" font-size="18" fill="#7f1d1d">↓ Fell</text></svg>')}`,
+      same: `data:image/svg+xml;utf8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 120"><rect width="100%" height="100%" fill="#f8fafc"/><text x="50%" y="55%" text-anchor="middle" font-size="14" fill="#0f172a">→ Stable</text></svg>')}`
+    };
+
+    let progressChart=null, topicChart=null, subjectChart=null;
+
+    function renderAll(subjectFilter){
+      const unified = loadUnifiedHistory();
+      const currentUser = localStorage.getItem('edu_current') ? JSON.parse(localStorage.getItem('edu_current')).name : (localStorage.getItem('currentUser') || 'Guest');
+
+      // filter to current user (always)
+      const userAll = unified.filter(r => String(r.user) === String(currentUser));
+      const filteredBySubject = (subjectFilter && subjectFilter !== 'all') ? userAll.filter(r => subjectOfCategory(r.category) === subjectFilter) : userAll.slice();
+
+      // update user stats
+      document.getElementById('profileAttempts').textContent = filteredBySubject.length;
+      if(filteredBySubject.length === 0){ document.getElementById('profileBest').textContent = '—'; document.getElementById('profileLast').textContent = '—'; }
+      else { const pvals = filteredBySubject.map(x => x.percent == null ? 0 : Number(x.percent)); document.getElementById('profileBest').textContent = Math.max(...pvals) + '%'; document.getElementById('profileLast').textContent = new Date(filteredBySubject[filteredBySubject.length-1].ts).toLocaleString(); }
+
+      // progress line (user's attempts for subjectFilter)
+      const labels = filteredBySubject.map(r => new Date(r.ts).toLocaleString());
+      const scores = filteredBySubject.map(r => r.percent == null ? 0 : Number(r.percent));
+      if(progressChart) progressChart.destroy();
+      if(scores.length){
+        document.getElementById('progressNoData').style.display = 'none';
+        progressChart = new Chart(document.getElementById('progressLineChart').getContext('2d'), {
+          type:'line',
+          data:{ labels, datasets:[{ label:'Score (%)', data:scores, tension:0.25, fill:false, pointRadius:4 }] },
+          options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ suggestedMin:0, suggestedMax:100 } } }
+        });
+      } else {
+        document.getElementById('progressNoData').style.display = '';
+        if(progressChart){ progressChart=null; document.getElementById('progressLineChart').getContext('2d').clearRect(0,0,document.getElementById('progressLineChart').width,document.getElementById('progressLineChart').height); }
+      }
+
+      // subject averages (across user's own attempts across subjects)
+      const subjAgg = {}; // compute per-subject averages for *this user*
+      ['informatics','english','math'].forEach(s=> subjAgg[s] = null);
+      const grouped = {};
+      userAll.forEach(r=> { const s = subjectOfCategory(r.category); if(!grouped[s]) grouped[s]=[]; if(r.percent!=null) grouped[s].push(Number(r.percent)); });
+      Object.keys(grouped).forEach(k=> { const arr = grouped[k]; subjAgg[k] = arr && arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : null; });
+
+      const subjOrder = ['informatics','english','math'];
+      const subjLabels = { informatics:'Informatics', english:'English', math:'Math' };
+      const dataVals = subjOrder.map(s => (subjAgg[s] == null ? 0 : subjAgg[s]));
+      if(subjectChart) subjectChart.destroy();
+      if(Object.values(subjAgg).some(v=> v!=null)){
+        document.getElementById('subjectNoData').style.display = 'none';
+        subjectChart = new Chart(document.getElementById('subjectPieChart').getContext('2d'), { type:'bar', data:{ labels: subjOrder.map(s=> subjLabels[s]), datasets:[{ label:'Average %', data: dataVals, borderWidth:1 }] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ suggestedMin:0, suggestedMax:100 } } } });
+      } else {
+        document.getElementById('subjectNoData').style.display = '';
+        if(subjectChart){ subjectChart=null; document.getElementById('subjectPieChart').getContext('2d').clearRect(0,0,document.getElementById('subjectPieChart').width,document.getElementById('subjectPieChart').height); }
+      }
+
+      // topic breakdown for selected subject (user only)
+      const topicAgg = computeTopicAverages(filteredBySubject);
+      if(topicChart) topicChart.destroy();
+      if(topicAgg.labels && topicAgg.labels.length){
+        document.getElementById('topicNoData').style.display = 'none';
+        topicChart = new Chart(document.getElementById('topicBarChart').getContext('2d'), { type:'bar', data:{ labels: topicAgg.labels, datasets:[{ label:'Average % by topic', data: topicAgg.values, borderWidth:1 }] }, options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ suggestedMin:0, suggestedMax:100 } } } });
+      } else {
+        document.getElementById('topicNoData').style.display = '';
+        if(topicChart){ topicChart=null; document.getElementById('topicBarChart').getContext('2d').clearRect(0,0,document.getElementById('topicBarChart').width,document.getElementById('topicBarChart').height); }
+      }
+
+      // history table (user only)
+      const tbody = document.getElementById('historyTableBody');
+      const rows = filteredBySubject.slice().reverse().map((r,i) => {
+        const idx = filteredBySubject.length - i;
+        const when = new Date(r.ts).toLocaleString();
+        const pct = (r.percent==null ? '—' : r.percent + '%');
+        return `<tr><td>${idx}</td><td>${_esc(r.user)}</td><td>${_esc(r.category)}</td><td>${_esc(r.score||'')}</td><td>${_esc(pct)}</td><td>${_esc(when)}</td></tr>`;
+      }).join('');
+      tbody.innerHTML = rows || '<tr><td colspan="6" class="text-muted">No attempts yet</td></tr>';
+
+      // MEME: based on last two user attempts for selected subject
+      const L = getUILang(); const u = UI_I18N[L] || UI_I18N.en;
+      const memeImgEl = document.getElementById('memeImg');
+      const memeCap = document.getElementById('memeCaption');
+      const avgCap = document.getElementById('avgCaption');
+
+      const avgVal = filteredBySubject.length ? Math.round(filteredBySubject.reduce((s,x)=> s + (x.percent==null?0:Number(x.percent)),0) / filteredBySubject.length) : null;
+      document.getElementById('avgCaption').textContent = (u.avgCaption || 'Subject avg:') + ' ' + (avgVal==null? '—' : (avgVal + '%'));
+
+      if(filteredBySubject.length >= 2){
+        const last = filteredBySubject[filteredBySubject.length-1].percent == null ? 0 : Number(filteredBySubject[filteredBySubject.length-1].percent);
+        const prev = filteredBySubject[filteredBySubject.length-2].percent == null ? 0 : Number(filteredBySubject[filteredBySubject.length-2].percent);
+        if(last > prev) { memeImgEl.innerHTML = `<img src="${MEME_SVGS.up}" alt="up" style="width:100%;height:100%;object-fit:cover">`; memeCap.textContent = u.memeUp; }
+        else if(last < prev) { memeImgEl.innerHTML = `<img src="${MEME_SVGS.down}" alt="down" style="width:100%;height:100%;object-fit:cover">`; memeCap.textContent = u.memeDown; }
+        else { memeImgEl.innerHTML = `<img src="${MEME_SVGS.same}" alt="same" style="width:100%;height:100%;object-fit:cover">`; memeCap.textContent = u.memeSame; }
+      } else if(filteredBySubject.length === 1){
+        memeImgEl.innerHTML = `<img src="${MEME_SVGS.same}" alt="single" style="width:100%;height:100%;object-fit:cover">`;
+        memeCap.textContent = u.memeSame;
+      } else {
+        memeImgEl.innerHTML = `<svg width="100%" height="100%" viewBox="0 0 200 120" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#0f172a"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="12" fill="#9aa4b2">No data</text></svg>`;
+        memeCap.textContent = u.nodata || 'No data';
+      }
+    }
+
+    // initial wiring
+    document.addEventListener('DOMContentLoaded', function(){
+      try {
+        const edu = localStorage.getItem('edu_current');
+        if(edu){ const o = JSON.parse(edu); if(o.name) document.getElementById('profileName').textContent = o.name; if(o.email) document.getElementById('profileEmail').textContent = o.email || o.name; }
+        else { const cur = localStorage.getItem('currentUser'); if(cur) document.getElementById('profileName').textContent = cur; }
+      } catch(e){}
+      document.getElementById('subjectFilter').addEventListener('change', ()=> renderAll(document.getElementById('subjectFilter').value || 'all'));
+      document.querySelectorAll('.lang-switch [data-lang]').forEach(b=> b.addEventListener('click', ()=> setUILang(b.getAttribute('data-lang')||'en')));
+      applyUILang();
+      renderAll('all');
+
+      document.getElementById('exportHistoryBtnProfile').addEventListener('click', function(){ const oldData = safeParse('edu_history'), newData = safeParse('quiz_history_v1'); downloadJSON('edu_quiz_history_export.json', { exportedAt:(new Date()).toISOString(), edu_history:oldData, quiz_history_v1:newData }); });
+      document.getElementById('clearHistoryBtn').addEventListener('click', function(){ if(!confirm('Clear all local history (edu_history and quiz_history_v1)? This cannot be undone.')) return; localStorage.removeItem('edu_history'); localStorage.removeItem('quiz_history_v1'); const cu = localStorage.getItem('edu_current') ? JSON.parse(localStorage.getItem('edu_current')).name : (localStorage.getItem('currentUser') || null); if(cu) localStorage.removeItem('history_user_' + cu); renderAll(document.getElementById('subjectFilter').value || 'all'); });
+      document.getElementById('logoutBtnProfile').addEventListener('click', function(e){ e.preventDefault(); localStorage.removeItem('edu_current'); localStorage.removeItem('currentUser'); localStorage.removeItem('authUser'); location.href = 'index.html'; });
+    });
+
+    // helpers reused
+    function safeParse(key){ try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; } }
+    function downloadJSON(filename, data){ const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = filename; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url); }
+    function subjectOfCategory(cat){ if(!cat) return 'other'; const s = String(cat).toLowerCase(); if(s.startsWith('informatics')) return 'informatics'; if(s.startsWith('english')) return 'english'; if(s.startsWith('math')) return 'math'; if(s.includes('informat')) return 'informatics'; if(s.includes('eng')) return 'english'; if(s.includes('math')) return 'math'; return 'other'; }
+    function loadUnifiedHistory(){ const dataNew = safeParse('quiz_history_v1'); const dataOld = safeParse('edu_history'); const unified = []; dataNew.forEach(r => unified.push({ ts: r.ts || r.timestamp || new Date().toISOString(), user: r.user || (localStorage.getItem('edu_current') ? JSON.parse(localStorage.getItem('edu_current')).name : (localStorage.getItem('currentUser') || 'Guest')), category: r.category || 'undef', percent: (r.percent == null ? null : Number(r.percent)), score: r.score || '', topicBreakdown: r.topicBreakdown || {} })); dataOld.forEach(r => unified.push({ ts: r.ts || r.timestamp || new Date().toISOString(), user: r.user || (localStorage.getItem('edu_current') ? JSON.parse(localStorage.getItem('edu_current')).name : (localStorage.getItem('currentUser') || 'Guest')), category: r.category || r.cat || 'undef', percent: (r.percent == null ? null : Number(r.percent)), score: r.score || '', topicBreakdown: r.topicBreakdown || {} })); unified.sort((a,b) => new Date(a.ts) - new Date(b.ts)); return unified; }
+    function computeTopicAverages(list){ const agg = {}; list.forEach(r => { const tb = r.topicBreakdown || {}; const subj = subjectOfCategory(r.category); if(tb && Object.keys(tb).length){ Object.keys(tb).forEach(topic => { const rec = agg[topic] || { sum:0, n:0 }; const pct = (tb[topic].total && tb[topic].correct) ? Math.round((tb[topic].correct / tb[topic].total) * 100) : 0; rec.sum += pct; rec.n++; agg[topic] = rec; }); } else { if(subj === 'math'){ const cat = String(r.category || '').toLowerCase(); const bucket = cat.includes('geometry') ? 'geometry' : cat.includes('algebra') ? 'algebra' : cat.includes('practice') ? 'algebra' : cat.includes('theory') ? 'geometry' : 'overall'; const rec = agg[bucket] || { sum:0, n:0 }; const p = (r.percent == null) ? 0 : Number(r.percent); rec.sum += p; rec.n++; agg[bucket] = rec; } else if(subj === 'english'){ const cat = String(r.category || '').toLowerCase(); const mapping = ['reading','writing','listening','speaking']; let found = mapping.find(k => cat.includes(k)); if(!found) found = 'overall'; const rec = agg[found] || { sum:0, n:0 }; const p = (r.percent == null) ? 0 : Number(r.percent); rec.sum += p; rec.n++; agg[found] = rec; } else { const rec = agg['overall'] || { sum:0, n:0 }; const p = (r.percent == null) ? 0 : Number(r.percent); rec.sum += p; rec.n++; agg['overall'] = rec; } } }); const labels = Object.keys(agg); const values = labels.map(k => Math.round(agg[k].sum / Math.max(1, agg[k].n))); return { labels, values }; }
+
+    // small i18n helpers for meme text
+    function getUILang(){ return localStorage.getItem('edu_lang') || 'en'; }
+    function setUILang(l){ localStorage.setItem('edu_lang', l); applyUILang(); renderAll(document.getElementById('subjectFilter').value || 'all'); }
+    function applyUILang(){ const L=getUILang(), u=UI_I18N[L]||UI_I18N.en; document.getElementById('langLabel').textContent=u.language; document.getElementById('showLabel').textContent=u.show; document.getElementById('attLabel').textContent=u.att; document.getElementById('bestLabel').textContent=u.best; document.getElementById('lastLabel').textContent=u.last; document.getElementById('exportHistoryBtnProfile').textContent=u.exportBtn; document.getElementById('clearHistoryBtn').textContent=u.clearBtn; document.getElementById('logoutBtnProfile').textContent=u.logout; document.getElementById('progressTitle').textContent=u.progress; document.getElementById('subjectAvgTitle').textContent=u.subjectAvg; document.getElementById('topicTitle').textContent=u.topicAvg; document.getElementById('historyTitle').textContent=u.history; document.getElementById('progressNoData').textContent=u.nodata; document.getElementById('subjectNoData').textContent=u.nodata; document.getElementById('topicNoData').textContent=u.nodata; document.querySelectorAll('.lang-switch [data-lang]').forEach(b=> b.classList.toggle('active', b.getAttribute('data-lang')===L)); }
+
+    function _esc(s){ return String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]); }
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
